@@ -3,9 +3,11 @@ import { Selection } from "@/selection";
 export default function Footer({
   text,
   selection,
+  insertMode,
 }: {
   text: string;
   selection: Selection;
+  insertMode: boolean;
 }) {
   const lines = text.split("\n");
   const wordCount = lines
@@ -17,23 +19,32 @@ export default function Footer({
 
   return (
     <div className="shrink-0 h-[50px] pt-4 pr-4 flex flex-row justify-between">
-      <h4 className="px-2 text-xs text-muted-foreground">
-        {selection.start !== null &&
-          selection.end !== null &&
-          selection.start !== selection.end && (
-            <span className="text-foreground">
-              [{selection.start},{selection.end}]{" "}
-            </span>
-          )}
-        {lines.length}L {wordCount}W {verbCount}V {consonantCount}C
-      </h4>
-      <h4 className="px-2 text-xs text-muted-foreground">
-        {new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })}
-      </h4>
+      {insertMode && (
+        <div className="px-2 text-xs text-muted-foreground">
+          <span className="text-foreground">Insert Mode</span>
+        </div>
+      )}
+      {!insertMode && (
+        <>
+          <h4 className="px-2 text-xs text-muted-foreground">
+            {selection.start !== null &&
+              selection.end !== null &&
+              selection.start !== selection.end && (
+                <span className="text-foreground">
+                  [{selection.start},{selection.end}]{" "}
+                </span>
+              )}
+            {lines.length}L {wordCount}W {verbCount}V {consonantCount}C
+          </h4>
+          <h4 className="px-2 text-xs text-muted-foreground">
+            {new Date().toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })}
+          </h4>
+        </>
+      )}
     </div>
   );
 }

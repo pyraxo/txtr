@@ -190,3 +190,7 @@
     font-family: var(--font-mono);
   }
 }
+
+::selection {
+  @apply bg-black text-white;
+}
