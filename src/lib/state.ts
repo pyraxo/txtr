@@ -6,16 +6,18 @@ const getLineNumber = (text: string, index: number) => {
   return text.slice(0, index).split("\n").length;
 };
 
+const initialSelectionState = {
+  start: null,
+  end: null,
+  startLine: null,
+  endLine: null,
+};
+
 const useStore = create<Store>()((set) => ({
   text: "",
   setText: (text: string) => set({ text }),
   setFileText: (path: string, text: string) => set(state => ({ files: { ...state.files, [path]: { ...state.files[path], content: text } } })),
-  selection: {
-    start: null,
-    end: null,
-    startLine: null,
-    endLine: null,
-  },
+  selection: initialSelectionState,
   updateSelection: (start: number, end: number) => {
     set((state) => ({
       selection: {
@@ -45,12 +47,7 @@ const useStore = create<Store>()((set) => ({
   setInsertMode: (mode: boolean) => set({ insertMode: mode }),
   resetSelection: () => {
     set(() => ({
-      selection: {
-        start: null,
-        end: null,
-        startLine: null,
-        endLine: null,
-      },
+      selection: initialSelectionState,
     }));
   },
   selectedFile: null,

@@ -1,6 +1,6 @@
 import type { LocalFile } from "@/types/file";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { open } from "@tauri-apps/plugin-fs";
+import { open, writeTextFile } from "@tauri-apps/plugin-fs";
 
 export async function openFile(): Promise<LocalFile | null> {
   const filepath = await openDialog({
@@ -32,14 +32,6 @@ export async function openFile(): Promise<LocalFile | null> {
 export async function saveFile(
   content: string,
   filepath: string
-): Promise<string | null> {
-  const file = await open(filepath, {
-    write: true,
-    create: true,
-  });
-
-  await file.write(new TextEncoder().encode(content));
-  await file.close();
-
-  return filepath;
+): Promise<void> {
+  return await writeTextFile(filepath, content);
 }

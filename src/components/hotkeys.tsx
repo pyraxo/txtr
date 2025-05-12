@@ -1,4 +1,4 @@
-import { openFile } from "@/lib/filepicker";
+import { openFile, saveFile } from "@/lib/filepicker";
 import { INSERTS } from "@/lib/inserts";
 import useStore from "@/lib/state";
 import { addFile, clearFiles, removeFile } from "@/lib/store";
@@ -20,6 +20,7 @@ export default function Hotkeys() {
   const dropFile = useStore((state) => state.dropFile);
   const files = useStore((state) => state.files);
   const setFiles = useStore((state) => state.setFiles);
+  const removeModifiedFile = useStore((state) => state.removeModifiedFile);
 
   const handleFileAdd = async (fileInfo: LocalFile) => {
     console.log(fileInfo);
@@ -27,13 +28,9 @@ export default function Hotkeys() {
     includeFile(fileInfo.path, fileInfo);
     setSelectedFile(fileInfo);
     // setFileText(fileInfo.path, fileInfo.content);
-    console.log("file added");
   };
 
   const handleFileRemove = async () => {
-    console.log("im trying to remove");
-    console.log("pls", selectedFile);
-    console.log(files);
     if (!selectedFile) {
       return;
     }
@@ -55,6 +52,55 @@ export default function Hotkeys() {
     }
   };
 
+  const handleFileSave = async () => {
+    console.log(
+      "handleFileSave: Triggered. Current selectedFile:",
+      selectedFile
+    );
+    console.log(
+      "handleFileSave: Current files state:",
+      typeof structuredClone === "function" ? structuredClone(files) : files
+    );
+
+    if (!selectedFile) {
+      console.log("handleFileSave: No file selected, returning.");
+      return;
+    }
+
+    const currentFileObject = files[selectedFile];
+    console.log(
+      "handleFileSave: currentFileObject from files[selectedFile]:",
+      currentFileObject
+    );
+
+    if (!currentFileObject) {
+      console.error(
+        "handleFileSave: selectedFile path does not exist as a key in the files object. selectedFile:",
+        selectedFile
+      );
+      return;
+    }
+
+    console.log("handleFileSave: File path to check:", currentFileObject.path);
+    if (!currentFileObject.path.startsWith("local-")) {
+      console.log(
+        "handleFileSave: Path does not start with 'local-', proceeding to save."
+      );
+      try {
+        await saveFile(currentFileObject.content, currentFileObject.path);
+        console.log("handleFileSave: File saved successfully.");
+        removeModifiedFile(selectedFile);
+      } catch (error) {
+        console.error(
+          "handleFileSave: Error during saveFile operation:",
+          error
+        );
+      }
+    } else {
+      console.log("handleFileSave: Path starts with 'local-', save skipped.");
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
       if (event.metaKey && event.key === "i") {
@@ -66,6 +112,22 @@ export default function Hotkeys() {
         if (fileInfo) {
           await handleFileAdd(fileInfo);
         }
+      }
+
+      if (event.metaKey && event.key === "n") {
+        // New file
+        const newFileName = new Date().toISOString();
+        includeFile(`local-${newFileName}`, {
+          path: `local-${newFileName}`,
+          content: "",
+          name: newFileName,
+        });
+        setSelectedFile(`local-${newFileName}`);
+      }
+
+      if (event.metaKey && event.key === "s") {
+        event.preventDefault();
+        await handleFileSave();
       }
 
       if (event.metaKey && event.shiftKey && event.key === "c") {
@@ -94,7 +156,23 @@ export default function Hotkeys() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [insertMode]);
+  }, [
+    insertMode,
+    setInsertMode,
+    setInsertText,
+    setFileText,
+    selectedFile,
+    resetSelectedFile,
+    setSelectedFile,
+    includeFile,
+    dropFile,
+    files,
+    setFiles,
+    removeModifiedFile,
+    handleFileAdd,
+    handleFileRemove,
+    handleFileSave,
+  ]);
 
   return <></>;
 }
