@@ -10,7 +10,7 @@ export default function Sidebar() {
 
   const selectedIdx = useStore((state) => {
     const { selection, selectedFile } = state;
-    if (selectedFile === null || typeof files[selectedFile] === "undefined") {
+    if (!selectedFile || !files[selectedFile]) {
       return null;
     }
     const leadingIdx: number[] = files[selectedFile].content
@@ -33,11 +33,27 @@ export default function Sidebar() {
       : null;
   });
 
-  const handleClick = (path: string, line: string) => {
-    setSelectedFile(files[path]);
-    const startingIdx = files[path].content.indexOf(line);
-    const endingIdx = startingIdx + line.length;
-    updateSelection(startingIdx, endingIdx);
+  const handleClick = (path: string, lineNumber: number) => {
+    const file = files[path];
+    if (!file?.content) return;
+
+    setSelectedFile(file);
+
+    const lines = file.content.split("\n");
+    if (lineNumber < 1 || lineNumber > lines.length) {
+      console.error("Invalid line number provided to handleClick:", lineNumber);
+      return;
+    }
+
+    let startCharIndex = 0;
+    for (let i = 0; i < lineNumber - 1; i++) {
+      startCharIndex += (lines[i]?.length || 0) + 1;
+    }
+
+    const targetLine = lines[lineNumber - 1];
+    const endCharIndex = startCharIndex + (targetLine?.length || 0);
+
+    updateSelection(startCharIndex, endCharIndex);
   };
   const handleFileClick = (path: string) => {
     setSelectedFile(files[path]);
@@ -83,7 +99,7 @@ export default function Sidebar() {
                         <div
                           key={`${path}-${idx}`}
                           className={`pl-4 ${textColour} cursor-pointer hover:text-foreground`}
-                          onClick={() => handleClick(path, line)}
+                          onClick={() => handleClick(path, idx + 1)}
                         >
                           {isSelected && (
                             <div
@@ -101,8 +117,8 @@ export default function Sidebar() {
                         ...acc,
                         <div
                           key={`${path}-${idx}`}
-                          className={`cursor-pointer ${textColour} hover:text-foreground`}
-                          onClick={() => handleClick(path, line)}
+                          className={`cursor-pointer ${textColour} cursor-pointer hover:text-foreground`}
+                          onClick={() => handleClick(path, idx + 1)}
                         >
                           {isSelected && (
                             <div

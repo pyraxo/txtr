@@ -19,14 +19,20 @@ const useStore = create<Store>()((set) => ({
   setFileText: (path: string, text: string) => set(state => ({ files: { ...state.files, [path]: { ...state.files[path], content: text } } })),
   selection: initialSelectionState,
   updateSelection: (start: number, end: number) => {
-    set((state) => ({
-      selection: {
-        start,
-        end,
-        startLine: getLineNumber(state.text, start),
-        endLine: getLineNumber(state.text, end),
-      },
-    }));
+    set((state) => {
+      const currentContent = state.selectedFile ? state.files[state.selectedFile]?.content : '';
+      if (typeof currentContent !== 'string') {
+        return state;
+      }
+      return {
+        selection: {
+          start,
+          end,
+          startLine: getLineNumber(currentContent, start),
+          endLine: getLineNumber(currentContent, end),
+        },
+      }
+    });
   },
   insertText: "",
   setInsertText: (toInsert: string) => set((state) => {

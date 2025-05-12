@@ -19,6 +19,7 @@ export default function Editor({
       const newText = e.target.value;
       setFileText(selectedFile, newText);
       addModifiedFile(selectedFile);
+      updateSelection(e.target.selectionStart, e.target.selectionEnd);
     }
   };
   return (
