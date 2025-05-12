@@ -9,6 +9,7 @@ const getLineNumber = (text: string, index: number) => {
 const useStore = create<Store>()((set) => ({
   text: "",
   setText: (text: string) => set({ text }),
+  setFileText: (path: string, text: string) => set(state => ({ files: { ...state.files, [path]: { ...state.files[path], content: text } } })),
   selection: {
     start: null,
     end: null,
@@ -26,12 +27,20 @@ const useStore = create<Store>()((set) => ({
     }));
   },
   insertText: "",
-  setInsertText: (toInsert: string) => {
-    set((state) => ({
-      text: state.text.slice(0, state.selection.start ?? 0) + toInsert + state.text.slice(state.selection.end ?? 0),
-      insertText: "",
-    }));
-  },
+  setInsertText: (toInsert: string) => set((state) => {
+    if (!state.selectedFile) {
+      return state;
+    }
+    return {
+      files: {
+        ...state.files,
+        [state.selectedFile]: {
+          ...state.files[state.selectedFile],
+          content: state.files[state.selectedFile].content.slice(0, state.selection.start ?? 0) + toInsert + state.files[state.selectedFile].content.slice(state.selection.end ?? 0)
+        }
+      },
+    };
+  }),
   insertMode: false,
   setInsertMode: (mode: boolean) => set({ insertMode: mode }),
   resetSelection: () => {

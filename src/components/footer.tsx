@@ -2,21 +2,28 @@ import { INSERTS } from "@/lib/inserts";
 import useStore from "@/lib/state";
 
 export default function Footer() {
-  const text = useStore((state) => state.text);
+  // const text = useStore((state) => state.text);
   const selection = useStore((state) => state.selection);
   const insertMode = useStore((state) => state.insertMode);
+  const files = useStore((state) => state.files);
+  const selectedFile = useStore((state) => state.selectedFile);
 
-  const lines = text?.split("\n");
+  const lines = selectedFile ? files[selectedFile].content?.split("\n") : [];
   const wordCount = lines
-    ?.map((line) => line.split(" ").length)
-    .reduce((a, b) => a + b, 0);
+    ?.map((line: string) => line.split(" ").length)
+    .reduce((a: number, b: number) => a + b, 0);
 
-  const verbCount = text?.match(/[aeiou]/gi)?.length || 0;
-  const consonantCount = (text?.match(/[a-zA-Z]/gi)?.length || 0) - verbCount;
+  const verbCount = selectedFile
+    ? files[selectedFile]?.content?.match(/[aeiou]/gi)?.length || 0
+    : 0;
+  const consonantCount = selectedFile
+    ? (files[selectedFile]?.content?.match(/[a-zA-Z]/gi)?.length || 0) -
+      verbCount
+    : 0;
 
   return (
     <div className="shrink-0 h-[50px] pt-4 pr-4 flex flex-row justify-between w-full">
-      {insertMode && lines && (
+      {insertMode && selectedFile && (
         <div className="px-2 text-xs text-muted-foreground flex flex-row gap-2">
           <span className="text-foreground">Insert Mode</span>
           {INSERTS.map((insert) => (

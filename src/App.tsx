@@ -11,6 +11,7 @@ export default function App() {
   const selectionRef = useRef<HTMLTextAreaElement>(null);
   const setSelectedFile = useStore((state) => state.setSelectedFile);
   const setText = useStore((state) => state.setText);
+
   if (!import.meta.env.DEV) {
     document.oncontextmenu = (event) => event.preventDefault();
   }

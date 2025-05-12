@@ -5,17 +5,19 @@ export default function Editor({
 }: {
   selectionRef: React.RefObject<HTMLTextAreaElement>;
 }) {
-  const text = useStore((state) => state.text);
-  const setText = useStore((state) => state.setText);
+  // const text = useStore((state) => state.text);
+  // const setText = useStore((state) => state.setText);
+  const setFileText = useStore((state) => state.setFileText);
   const updateSelection = useStore((state) => state.updateSelection);
   const resetSelection = useStore((state) => state.resetSelection);
   const selectedFile = useStore((state) => state.selectedFile);
   const addModifiedFile = useStore((state) => state.addModifiedFile);
+  const files = useStore((state) => state.files);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (selectedFile) {
       const newText = e.target.value;
-      setText(newText);
+      setFileText(selectedFile, newText);
       addModifiedFile(selectedFile);
     }
   };
@@ -25,7 +27,7 @@ export default function Editor({
         <textarea
           ref={selectionRef}
           className="editor-area text-foreground text-sm w-full h-[calc(100vh-110px)] outline-none shadow-none resize-none focus:outline-none focus:ring-0 focus:ring-offset-0 leading-[1.5]"
-          value={text}
+          value={selectedFile ? files[selectedFile]?.content : ""}
           onChange={handleTextChange}
           onSelect={(e) => {
             const target = e.target as HTMLTextAreaElement;

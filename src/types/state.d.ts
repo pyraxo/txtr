@@ -10,6 +10,7 @@ type State = {
 
 type Actions = {
   setText: (text: string) => void;
+  setFileText: (path: string, text: string) => void;
   updateSelection: (start: number, end: number) => void;
   setInsertText: (text: string) => void;
   setInsertMode: (mode: boolean) => void;

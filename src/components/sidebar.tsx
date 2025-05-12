@@ -34,9 +34,7 @@ export default function Sidebar() {
   });
 
   const handleClick = (path: string, line: string) => {
-    if (selectedFile !== path) {
-      setSelectedFile(files[path]);
-    }
+    setSelectedFile(files[path]);
     const startingIdx = files[path].content.indexOf(line);
     const endingIdx = startingIdx + line.length;
     updateSelection(startingIdx, endingIdx);
