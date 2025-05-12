@@ -1,22 +1,22 @@
 import { INSERTS } from "@/lib/inserts";
-import useStore from "@/lib/store";
+import useStore from "@/lib/state";
 
 export default function Footer() {
   const text = useStore((state) => state.text);
   const selection = useStore((state) => state.selection);
   const insertMode = useStore((state) => state.insertMode);
 
-  const lines = text.split("\n");
+  const lines = text?.split("\n");
   const wordCount = lines
-    .map((line) => line.split(" ").length)
+    ?.map((line) => line.split(" ").length)
     .reduce((a, b) => a + b, 0);
 
-  const verbCount = text.match(/[aeiou]/gi)?.length || 0;
-  const consonantCount = (text.match(/[a-zA-Z]/gi)?.length || 0) - verbCount;
+  const verbCount = text?.match(/[aeiou]/gi)?.length || 0;
+  const consonantCount = (text?.match(/[a-zA-Z]/gi)?.length || 0) - verbCount;
 
   return (
     <div className="shrink-0 h-[50px] pt-4 pr-4 flex flex-row justify-between w-full">
-      {insertMode && (
+      {insertMode && lines && (
         <div className="px-2 text-xs text-muted-foreground flex flex-row gap-2">
           <span className="text-foreground">Insert Mode</span>
           {INSERTS.map((insert) => (
@@ -36,7 +36,7 @@ export default function Footer() {
           </span>
         </div>
       )}
-      {!insertMode && (
+      {!insertMode && lines && (
         <>
           <h4 className="px-2 text-xs text-muted-foreground">
             {selection.start !== null &&

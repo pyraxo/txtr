@@ -1,16 +1,22 @@
-import useStore from "@/lib/store";
-import { useState } from "react";
+import useStore from "@/lib/state";
+import React from "react";
 
 export default function Sidebar() {
-  const text = useStore((state) => state.text);
+  const selectedFile = useStore((state) => state.selectedFile);
+  const modifiedFiles = useStore((state) => state.modifiedFiles);
   const updateSelection = useStore((state) => state.updateSelection);
+  const setSelectedFile = useStore((state) => state.setSelectedFile);
+  const files = useStore((state) => state.files);
 
   const selectedIdx = useStore((state) => {
-    const { text, selection } = state;
-    const leadingIdx = text
+    const { selection, selectedFile } = state;
+    if (selectedFile === null || typeof files[selectedFile] === "undefined") {
+      return null;
+    }
+    const leadingIdx: number[] = files[selectedFile].content
       .split("\n")
       .reduce(
-        (ids, line, idx): number[] =>
+        (ids: number[], line: string, idx: number): number[] =>
           line.startsWith("#") || line.startsWith("##")
             ? ids.concat(idx + 1)
             : ids,
@@ -19,7 +25,7 @@ export default function Sidebar() {
     return selection.startLine !== null && selection.endLine !== null
       ? Math.max(
           ...leadingIdx.filter(
-            (idx) =>
+            (idx: number) =>
               idx >= (selection.startLine || 0) &&
               idx <= (selection.endLine || 0)
           )
@@ -27,81 +33,96 @@ export default function Sidebar() {
       : null;
   });
 
-  const handleMouseOver = (idx: number) => {
-    setMouseOver(idx);
-  };
-  const handleMouseOut = () => {
-    setMouseOver(null);
-  };
-  const handleClick = (line: string, idx: number) => {
-    const startingIdx = text.indexOf(line);
+  const handleClick = (path: string, line: string) => {
+    if (selectedFile !== path) {
+      setSelectedFile(files[path]);
+    }
+    const startingIdx = files[path].content.indexOf(line);
     const endingIdx = startingIdx + line.length;
     updateSelection(startingIdx, endingIdx);
   };
+  const handleFileClick = (path: string) => {
+    setSelectedFile(files[path]);
+  };
 
-  const [mouseOver, setMouseOver] = useState<number | null>(null);
   return (
     <div className="select-none shrink-0 w-3/10 max-w-[300px] h-full">
       <div className="px-8 py-[0.5rem] h-full w-full">
         <div className="text-xs text-foreground flex flex-col justify-between leading-[1.5]">
-          <div className="text-foreground flex flex-row justify-between">
-            new-file.md
-            <div className="text-foreground">*</div>
-          </div>
-
-          {text.split("\n").reduce((acc, line, idx): any => {
-            const isSelected = selectedIdx === idx + 1;
-            const textColour = isSelected
-              ? "text-foreground"
-              : "text-muted-foreground";
-            const isHovered = mouseOver === idx;
-            if (line.startsWith("##")) {
-              return [
-                ...acc,
-                <div
-                  key={idx}
-                  className={`pl-4 ${textColour} cursor-pointer`}
-                  onMouseOver={() => handleMouseOver(idx)}
-                  onMouseOut={() => handleMouseOut()}
-                  onClick={() => handleClick(line, idx + 1)}
-                >
-                  {isSelected && (
-                    <div
-                      className={`${
-                        isHovered ? "text-foreground" : "text-muted-foreground"
-                      } pl-[-1.5] absolute left-[2rem]`}
-                    >
-                      •{" "}
-                    </div>
-                  )}
-                  {line.slice(2)}
-                </div>,
-              ];
-            } else if (line.startsWith("#")) {
-              return [
-                ...acc,
-                <div
-                  key={idx}
-                  className={`cursor-pointer ${textColour}`}
-                  onMouseOver={() => handleMouseOver(idx)}
-                  onMouseOut={() => handleMouseOut()}
-                  onClick={() => handleClick(line, idx + 1)}
-                >
-                  {isSelected && (
-                    <div
-                      className={`${
-                        isHovered ? "text-foreground" : "text-muted-foreground"
-                      } pl-[-1.5] absolute left-[1rem]`}
-                    >
-                      •{" "}
-                    </div>
-                  )}
-                  {line.slice(1)}
-                </div>,
-              ];
+          {Object.entries(files).map(([path, file]) => {
+            if (!file || typeof file.content !== "string") {
+              return null;
             }
-            return acc;
-          }, [])}
+
+            return (
+              <React.Fragment key={path}>
+                <div
+                  className={`text-foreground flex flex-row justify-between cursor-pointer ${
+                    selectedFile === path
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  } hover:text-foreground`}
+                  onClick={() => handleFileClick(path)}
+                >
+                  {file.name || "Untitled"}
+                  {modifiedFiles[path] && (
+                    <div className="text-foreground" key={`${path}-modified`}>
+                      *
+                    </div>
+                  )}
+                </div>
+
+                {file.content
+                  .split("\n")
+                  .reduce((acc: any, line: string, idx: number): any => {
+                    const isSelected = selectedIdx === idx + 1;
+                    const textColour = isSelected
+                      ? "text-foreground"
+                      : "text-muted-foreground";
+                    if (line.startsWith("##")) {
+                      return [
+                        ...acc,
+                        <div
+                          key={`${path}-${idx}`}
+                          className={`pl-4 ${textColour} cursor-pointer hover:text-foreground`}
+                          onClick={() => handleClick(path, line)}
+                        >
+                          {isSelected && (
+                            <div
+                              className={`pl-[-1.5] absolute left-[2rem] hover:text-foreground`}
+                              key={`${path}-${idx}-selected`}
+                            >
+                              •{" "}
+                            </div>
+                          )}
+                          {line.slice(2)}
+                        </div>,
+                      ];
+                    } else if (line.startsWith("#")) {
+                      return [
+                        ...acc,
+                        <div
+                          key={`${path}-${idx}`}
+                          className={`cursor-pointer ${textColour} hover:text-foreground`}
+                          onClick={() => handleClick(path, line)}
+                        >
+                          {isSelected && (
+                            <div
+                              className={`pl-[-1.5] absolute left-[1rem] hover:text-foreground`}
+                              key={`${path}-${idx}-selected`}
+                            >
+                              •{" "}
+                            </div>
+                          )}
+                          {line.slice(1)}
+                        </div>,
+                      ];
+                    }
+                    return acc;
+                  }, [])}
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
     </div>

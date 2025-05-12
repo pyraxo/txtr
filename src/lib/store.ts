@@ -1,48 +1,33 @@
-import Store from "@/types/store";
-import { create } from "zustand";
+import type { LocalFile } from "@/types/file";
+import { load } from "@tauri-apps/plugin-store";
+const store = await load("store.json");
 
-const getLineNumber = (text: string, index: number) => {
-  return text.slice(0, index).split("\n").length;
-};
+export async function getFiles(): Promise<Record<string, LocalFile>> {
+  if (!(await store.has("files"))) {
+    await store.set("files", {});
+  }
 
-const useStore = create<Store>()((set) => ({
-  text: "",
-  setText: (text: string) => set({ text }),
-  selection: {
-    start: null,
-    end: null,
-    startLine: null,
-    endLine: null,
-  },
-  updateSelection: (start: number, end: number) => {
-    set((state) => ({
-      selection: {
-        start,
-        end,
-        startLine: getLineNumber(state.text, start),
-        endLine: getLineNumber(state.text, end),
-      },
-    }));
-  },
-  insertText: "",
-  setInsertText: (toInsert: string) => {
-    set((state) => ({
-      text: state.text.slice(0, state.selection.start ?? 0) + toInsert + state.text.slice(state.selection.end ?? 0),
-      insertText: "",
-    }));
-  },
-  insertMode: false,
-  setInsertMode: (mode: boolean) => set({ insertMode: mode }),
-  resetSelection: () => {
-    set(() => ({
-      selection: {
-        start: null,
-        end: null,
-        startLine: null,
-        endLine: null,
-      },
-    }));
-  },
-}));
+  return (await store.get("files")) as Record<string, LocalFile>;
+}
 
-export default useStore;
+export async function addFile(path: string, file: LocalFile): Promise<void> {
+  const files = await getFiles();
+  await store.set("files", { ...files, [path]: file });
+}
+
+export async function removeFile(path: string): Promise<void> {
+  const files = await getFiles();
+  delete files[path];
+  await store.set("files", files);
+}
+
+export async function getFile(path: string): Promise<LocalFile | null> {
+  const files = await getFiles();
+  return files[path] || null;
+}
+
+export async function clearFiles(): Promise<void> {
+  await store.set("files", {});
+}
+
+export default store;

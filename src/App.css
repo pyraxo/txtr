@@ -196,3 +196,8 @@
 ::selection {
   @apply bg-black text-white;
 }
+
+.editor-area::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
