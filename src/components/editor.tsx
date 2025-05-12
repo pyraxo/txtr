@@ -1,4 +1,5 @@
 import { Selection } from "@/selection";
+
 const getLineNumber = (text: string, index: number) => {
   return text.slice(0, index).split("\n").length;
 };
@@ -29,14 +30,16 @@ export default function Editor({
             setSelection({
               start: target.selectionStart,
               end: target.selectionEnd,
-              line: getLineNumber(target.value, target.selectionEnd),
+              startLine: getLineNumber(target.value, target.selectionStart),
+              endLine: getLineNumber(target.value, target.selectionEnd),
             });
           }}
           onBlur={() => {
             setSelection({
               start: null,
               end: null,
-              line: null,
+              startLine: null,
+              endLine: null,
             });
           }}
         />

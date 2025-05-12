@@ -1,5 +1,5 @@
 import { Selection } from "@/selection";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Sidebar({
   text,
@@ -22,9 +22,35 @@ export default function Sidebar({
     setSelection({
       start: startingIdx,
       end: endingIdx,
-      line: idx,
+      startLine: idx,
+      endLine: idx,
     });
   };
+
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    const leadingIdx = text
+      .split("\n")
+      .reduce(
+        (ids, line, idx): number[] =>
+          line.startsWith("#") || line.startsWith("##")
+            ? ids.concat(idx + 1)
+            : ids,
+        []
+      );
+    const selectedIdx =
+      selection.startLine !== null && selection.endLine !== null
+        ? Math.max(
+            ...leadingIdx.filter(
+              (idx) =>
+                idx >= (selection.startLine || 0) &&
+                idx <= (selection.endLine || 0)
+            )
+          )
+        : null;
+    setSelectedIdx(selectedIdx);
+  }, [selection, text]);
 
   const [mouseOver, setMouseOver] = useState<number | null>(null);
   return (
@@ -37,8 +63,7 @@ export default function Sidebar({
           </div>
 
           {text.split("\n").reduce((acc, line, idx): any => {
-            const isSelected =
-              selection.line !== null && selection.line - 1 === idx;
+            const isSelected = selectedIdx === idx + 1;
             const textColour = isSelected
               ? "text-foreground"
               : "text-muted-foreground";

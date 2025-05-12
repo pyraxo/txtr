@@ -9,7 +9,8 @@ export default function App() {
   const [selection, setSelection] = useState<Selection>({
     start: null,
     end: null,
-    line: null,
+    startLine: null,
+    endLine: null,
   });
   const selectionRef = useRef<HTMLTextAreaElement>(null);
   // const [greetMsg, setGreetMsg] = useState("");
