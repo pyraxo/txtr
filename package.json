@@ -26,7 +26,8 @@
     "tailwind-variants": "^1.0.0",
     "tailwindcss": "^4.1.6",
     "tailwindcss-animate": "^1.0.7",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

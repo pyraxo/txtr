@@ -1,22 +1,14 @@
-import { Selection } from "@/selection";
-
-const getLineNumber = (text: string, index: number) => {
-  return text.slice(0, index).split("\n").length;
-};
+import useStore from "@/lib/store";
 
 export default function Editor({
-  text,
-  setText,
-  setSelection,
-  insertMode,
   selectionRef,
 }: {
-  text: string;
-  setText: (text: string) => void;
-  setSelection: (selection: Selection) => void;
-  insertMode: boolean;
   selectionRef: React.RefObject<HTMLTextAreaElement>;
 }) {
+  const text = useStore((state) => state.text);
+  const setText = useStore((state) => state.setText);
+  const updateSelection = useStore((state) => state.updateSelection);
+  const resetSelection = useStore((state) => state.resetSelection);
   return (
     <div className="grow overflow-y-auto">
       <div className="pl-2 pr-4 py-[6px] cursor-text overflow-hidden">
@@ -27,21 +19,9 @@ export default function Editor({
           onChange={(e) => setText(e.target.value)}
           onSelect={(e) => {
             const target = e.target as HTMLTextAreaElement;
-            setSelection({
-              start: target.selectionStart,
-              end: target.selectionEnd,
-              startLine: getLineNumber(target.value, target.selectionStart),
-              endLine: getLineNumber(target.value, target.selectionEnd),
-            });
+            updateSelection(target.selectionStart, target.selectionEnd);
           }}
-          onBlur={() => {
-            setSelection({
-              start: null,
-              end: null,
-              startLine: null,
-              endLine: null,
-            });
-          }}
+          onBlur={resetSelection}
         />
       </div>
     </div>

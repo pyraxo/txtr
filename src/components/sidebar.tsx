@@ -1,35 +1,12 @@
-import { Selection } from "@/selection";
-import { useEffect, useState } from "react";
+import useStore from "@/lib/store";
+import { useState } from "react";
 
-export default function Sidebar({
-  text,
-  selection,
-  setSelection,
-}: {
-  text: string;
-  selection: Selection;
-  setSelection: (selection: Selection) => void;
-}) {
-  const handleMouseOver = (idx: number) => {
-    setMouseOver(idx);
-  };
-  const handleMouseOut = () => {
-    setMouseOver(null);
-  };
-  const handleClick = (line: string, idx: number) => {
-    const startingIdx = text.indexOf(line);
-    const endingIdx = startingIdx + line.length;
-    setSelection({
-      start: startingIdx,
-      end: endingIdx,
-      startLine: idx,
-      endLine: idx,
-    });
-  };
+export default function Sidebar() {
+  const text = useStore((state) => state.text);
+  const updateSelection = useStore((state) => state.updateSelection);
 
-  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-
-  useEffect(() => {
+  const selectedIdx = useStore((state) => {
+    const { text, selection } = state;
     const leadingIdx = text
       .split("\n")
       .reduce(
@@ -39,18 +16,28 @@ export default function Sidebar({
             : ids,
         []
       );
-    const selectedIdx =
-      selection.startLine !== null && selection.endLine !== null
-        ? Math.max(
-            ...leadingIdx.filter(
-              (idx) =>
-                idx >= (selection.startLine || 0) &&
-                idx <= (selection.endLine || 0)
-            )
+    return selection.startLine !== null && selection.endLine !== null
+      ? Math.max(
+          ...leadingIdx.filter(
+            (idx) =>
+              idx >= (selection.startLine || 0) &&
+              idx <= (selection.endLine || 0)
           )
-        : null;
-    setSelectedIdx(selectedIdx);
-  }, [selection, text]);
+        )
+      : null;
+  });
+
+  const handleMouseOver = (idx: number) => {
+    setMouseOver(idx);
+  };
+  const handleMouseOut = () => {
+    setMouseOver(null);
+  };
+  const handleClick = (line: string, idx: number) => {
+    const startingIdx = text.indexOf(line);
+    const endingIdx = startingIdx + line.length;
+    updateSelection(startingIdx, endingIdx);
+  };
 
   const [mouseOver, setMouseOver] = useState<number | null>(null);
   return (

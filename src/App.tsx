@@ -1,17 +1,13 @@
 import Editor from "@/components/editor";
 import Footer from "@/components/footer";
+import Hotkeys from "@/components/hotkeys";
 import Sidebar from "@/components/sidebar";
-import { Selection } from "@/selection";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import useStore from "./lib/store";
 
 export default function App() {
-  const [text, setText] = useState("");
-  const [selection, setSelection] = useState<Selection>({
-    start: null,
-    end: null,
-    startLine: null,
-    endLine: null,
-  });
+  const selection = useStore((state) => state.selection);
+
   const selectionRef = useRef<HTMLTextAreaElement>(null);
   // const [greetMsg, setGreetMsg] = useState("");
   // const [name, setName] = useState("");
@@ -25,18 +21,6 @@ export default function App() {
     document.oncontextmenu = (event) => event.preventDefault();
   }
 
-  const [insertMode, setInsertMode] = useState(false);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey && event.key === "i") {
-        setInsertMode(!insertMode);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [insertMode]);
-
   useEffect(() => {
     if (selectionRef.current) {
       selectionRef.current.setSelectionRange(selection.start, selection.end);
@@ -45,16 +29,11 @@ export default function App() {
 
   return (
     <main className="select-none h-[calc(100vh-30px)] w-screen flex dark bg-background ">
-      <Sidebar text={text} selection={selection} setSelection={setSelection} />
+      <Hotkeys />
+      <Sidebar />
       <div className="flex flex-col grow">
-        <Editor
-          text={text}
-          setText={setText}
-          setSelection={setSelection}
-          insertMode={insertMode}
-          selectionRef={selectionRef}
-        />
-        <Footer text={text} selection={selection} insertMode={insertMode} />
+        <Editor selectionRef={selectionRef} />
+        <Footer />
       </div>
       {/* <form
         className="row"
