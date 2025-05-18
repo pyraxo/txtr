@@ -23,6 +23,7 @@ type Actions = {
   setFiles: (files: Record<string, LocalFile>) => void;
   includeFile: (path: string, file: LocalFile) => void;
   dropFile: (path: string) => void;
+  updateFile: (oldPath: string, newPath: string, file: LocalFile) => void;
 }
 
 interface Store extends State, Actions { }

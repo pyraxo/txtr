@@ -1,11 +1,12 @@
 import type { LocalFile } from "@/types/file";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { open, writeTextFile } from "@tauri-apps/plugin-fs";
 
 export async function openFile(): Promise<LocalFile | null> {
   const filepath = await openDialog({
     multiple: false,
     directory: false,
+    title: "Open File"
   });
 
   if (!filepath) {
@@ -26,6 +27,7 @@ export async function openFile(): Promise<LocalFile | null> {
     path: filepath,
     content: textContents,
     name: filepath.split("/").pop() || "untitled",
+    isNewFile: false,
   };
 }
 
@@ -34,4 +36,17 @@ export async function saveFile(
   filepath: string
 ): Promise<void> {
   return await writeTextFile(filepath, content);
+}
+
+export async function openNewFile(defaultName: string | null): Promise<string | null> {
+  const filepath = await saveDialog({
+    title: "Save File",
+    filters: [{
+      name: "Text Files",
+      extensions: ["txt", "md", "mdx"]
+    }],
+    defaultPath: defaultName ? `${defaultName}.md` : undefined
+  });
+
+  return filepath || null;
 }

@@ -35,6 +35,7 @@ export default function Editor({
             updateSelection(target.selectionStart, target.selectionEnd);
           }}
           onBlur={resetSelection}
+          disabled={!selectedFile}
         />
       </div>
     </div>

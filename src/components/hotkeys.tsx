@@ -1,4 +1,4 @@
-import { openFile, saveFile } from "@/lib/filepicker";
+import { openFile, openNewFile, saveFile } from "@/lib/filepicker";
 import { INSERTS } from "@/lib/inserts";
 import useStore from "@/lib/state";
 import { addFile, clearFiles, removeFile } from "@/lib/store";
@@ -21,6 +21,7 @@ export default function Hotkeys() {
   const files = useStore((state) => state.files);
   const setFiles = useStore((state) => state.setFiles);
   const removeModifiedFile = useStore((state) => state.removeModifiedFile);
+  const updateFile = useStore((state) => state.updateFile);
 
   const handleFileAdd = async (fileInfo: LocalFile) => {
     console.log(fileInfo);
@@ -82,10 +83,7 @@ export default function Hotkeys() {
     }
 
     console.log("handleFileSave: File path to check:", currentFileObject.path);
-    if (!currentFileObject.path.startsWith("local-")) {
-      console.log(
-        "handleFileSave: Path does not start with 'local-', proceeding to save."
-      );
+    if (!currentFileObject.isNewFile) {
       try {
         await saveFile(currentFileObject.content, currentFileObject.path);
         console.log("handleFileSave: File saved successfully.");
@@ -97,7 +95,19 @@ export default function Hotkeys() {
         );
       }
     } else {
-      console.log("handleFileSave: Path starts with 'local-', save skipped.");
+      const filepath = await openNewFile(currentFileObject.name);
+      if (filepath) {
+        console.log("handleFileSave: New file path:", filepath);
+        const toSave: LocalFile = {
+          path: filepath,
+          content: currentFileObject.content,
+          name: filepath.split("/").pop() || currentFileObject.name,
+          isNewFile: false,
+        };
+        await saveFile(toSave.content, toSave.path);
+        updateFile(currentFileObject.path, toSave.path, toSave);
+        setSelectedFile(toSave);
+      }
     }
   };
 
@@ -116,13 +126,15 @@ export default function Hotkeys() {
 
       if (event.metaKey && event.key === "n") {
         // New file
-        const newFileName = new Date().toISOString();
-        includeFile(`local-${newFileName}`, {
+        const newFileName = new Date().toISOString().split("T")[0];
+        const newFile: LocalFile = {
           path: `local-${newFileName}`,
           content: "",
           name: newFileName,
-        });
-        setSelectedFile(`local-${newFileName}`);
+          isNewFile: true,
+        };
+        includeFile(`local-${newFileName}`, newFile);
+        setSelectedFile(newFile);
       }
 
       if (event.metaKey && event.key === "s") {

@@ -68,6 +68,9 @@ const useStore = create<Store>()((set) => ({
   includeFile: (path: string, file: LocalFile) => set(state => ({
     files: { ...state.files, [path]: file }
   })),
+  updateFile: (oldPath: string, newPath: string, file: LocalFile) => set(state => ({
+    files: { ...state.files, [oldPath]: undefined, [newPath]: file }
+  })),
   dropFile: (path: string) => set(state => {
     const { [path]: _, ...rest } = state.files;
     return { files: rest };
