@@ -2,7 +2,7 @@ import Editor from "@/components/editor";
 import Footer from "@/components/footer";
 import Hotkeys from "@/components/hotkeys";
 import Sidebar from "@/components/sidebar";
-import { getFiles } from "@/lib/store";
+import { getFilesStore } from "@/lib/store";
 import { useEffect, useRef } from "react";
 import useStore from "./lib/state";
 
@@ -20,7 +20,7 @@ export default function App() {
   useEffect(() => {
     const fetchFiles = async () => {
       console.log("App.tsx: Fetching files from store...");
-      const loadedFiles = await getFiles();
+      const loadedFiles = await getFilesStore();
       console.log("App.tsx: Loaded files:", loadedFiles);
       setFiles(loadedFiles);
 

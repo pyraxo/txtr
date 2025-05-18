@@ -1,7 +1,12 @@
 import { openFile, openNewFile, saveFile } from "@/lib/filepicker";
 import { INSERTS } from "@/lib/inserts";
 import useStore from "@/lib/state";
-import { addFile, clearFiles, removeFile } from "@/lib/store";
+import {
+  addFileStore,
+  clearFilesStore,
+  removeFileStore,
+  setFileStore,
+} from "@/lib/store";
 import { LocalFile } from "@/types/file";
 import { useEffect } from "react";
 
@@ -25,7 +30,7 @@ export default function Hotkeys() {
 
   const handleFileAdd = async (fileInfo: LocalFile) => {
     console.log(fileInfo);
-    await addFile(fileInfo.path, fileInfo);
+    await addFileStore(fileInfo.path, fileInfo);
     includeFile(fileInfo.path, fileInfo);
     setSelectedFile(fileInfo);
     // setFileText(fileInfo.path, fileInfo.content);
@@ -38,7 +43,7 @@ export default function Hotkeys() {
     console.log("im trying to remove2");
     if (Object.keys(files).length > 1) {
       const idx = Object.keys(files).indexOf(selectedFile);
-      await removeFile(selectedFile);
+      await removeFileStore(selectedFile);
       dropFile(selectedFile);
       if (idx > 0) {
         setSelectedFile(files[Object.keys(files)[idx - 1]]);
@@ -48,7 +53,7 @@ export default function Hotkeys() {
     } else {
       resetSelectedFile();
       setFileText(selectedFile, "");
-      await removeFile(selectedFile);
+      await removeFileStore(selectedFile);
       dropFile(selectedFile);
     }
   };
@@ -88,6 +93,7 @@ export default function Hotkeys() {
         await saveFile(currentFileObject.content, currentFileObject.path);
         console.log("handleFileSave: File saved successfully.");
         removeModifiedFile(selectedFile);
+        await setFileStore(currentFileObject.path, currentFileObject);
       } catch (error) {
         console.error(
           "handleFileSave: Error during saveFile operation:",
@@ -107,8 +113,22 @@ export default function Hotkeys() {
         await saveFile(toSave.content, toSave.path);
         updateFile(currentFileObject.path, toSave.path, toSave);
         setSelectedFile(toSave);
+        await setFileStore(toSave.path, toSave, currentFileObject.path);
       }
     }
+  };
+
+  const handleNewFile = async () => {
+    const newFileName = new Date().toISOString().split("T")[0];
+    const newFile: LocalFile = {
+      path: `local-${newFileName}`,
+      content: "",
+      name: newFileName,
+      isNewFile: true,
+    };
+    await addFileStore(newFile.path, newFile);
+    includeFile(newFile.path, newFile);
+    setSelectedFile(newFile);
   };
 
   useEffect(() => {
@@ -126,15 +146,7 @@ export default function Hotkeys() {
 
       if (event.metaKey && event.key === "n") {
         // New file
-        const newFileName = new Date().toISOString().split("T")[0];
-        const newFile: LocalFile = {
-          path: `local-${newFileName}`,
-          content: "",
-          name: newFileName,
-          isNewFile: true,
-        };
-        includeFile(`local-${newFileName}`, newFile);
-        setSelectedFile(newFile);
+        await handleNewFile();
       }
 
       if (event.metaKey && event.key === "s") {
@@ -147,7 +159,7 @@ export default function Hotkeys() {
       }
 
       if (event.metaKey && event.shiftKey && event.key === "x") {
-        await clearFiles();
+        await clearFilesStore();
         resetSelectedFile();
         // setText("");
         setFiles({});
